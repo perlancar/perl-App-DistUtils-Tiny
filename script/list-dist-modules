@@ -1,0 +1,46 @@
+#!perl
+
+use 5.010;
+use strict;
+use warnings;
+
+use App::DistUtils;
+use Perinci::CmdLine::Any;
+
+# AUTHORITY
+# DATE
+# DIST
+# VERSION
+
+our %SPEC;
+
+$SPEC{list_dist_modules} = {
+    v => 1.1,
+    summary => 'List modules that come with an installed Perl distributions',
+    args => {
+        %App::DistUtils::dist_arg_single,
+    },
+};
+sub list_dist_modules {
+    require Dist::Util;
+
+    my %args = @_;
+
+    [200, "OK", [Dist::Util::list_dist_modules($args{dist})]];
+}
+
+Perinci::CmdLine::Any->new(
+    url => "/main/list_dist_modules",
+)->run;
+
+# ABSTRACT:
+# PODNAME:
+
+=head1 SYNOPSIS
+
+ % list-dist-modules Text-ANSITable
+
+
+=head1 DESCRIPTION
+
+=cut

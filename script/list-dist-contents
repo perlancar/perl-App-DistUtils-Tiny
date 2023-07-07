@@ -1,0 +1,50 @@
+#!perl
+
+use 5.010;
+use strict;
+use warnings;
+
+use App::DistUtils;
+use Perinci::CmdLine::Any;
+
+# AUTHORITY
+# DATE
+# DIST
+# VERSION
+
+our %SPEC;
+
+$SPEC{list_dist_contents} = {
+    v => 1.1,
+    summary => 'List contents of an installed Perl distribution',
+    args => {
+        %App::DistUtils::dist_arg_single,
+    },
+};
+sub list_dist_contents {
+    require Dist::Util;
+
+    my %args = @_;
+
+    my $dist = $args{dist};
+    $dist =~ s/-/::/g;
+    my $packlist = Dist::Util::packlist_for($dist);
+    return [404, "Can't find .packlist for $dist"] unless $packlist;
+    [200, "OK", do { local $/; open my($fh), "<", $packlist; ~~<$fh> }];
+}
+
+Perinci::CmdLine::Any->new(
+    url => "/main/list_dist_contents",
+)->run;
+
+# ABSTRACT:
+# PODNAME:
+
+=head1 SYNOPSIS
+
+ % list-dist-contents Text-ANSITable
+
+
+=head1 DESCRIPTION
+
+=cut

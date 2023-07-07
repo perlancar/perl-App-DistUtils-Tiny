@@ -1,0 +1,55 @@
+#!perl
+
+use 5.010;
+use strict;
+use warnings;
+
+use App::DistUtils;
+use Perinci::CmdLine::Any;
+
+# AUTHORITY
+# DATE
+# DIST
+# VERSION
+
+our %SPEC;
+
+$SPEC{dist_dir} = {
+    v => 1.1,
+    summary => 'Get per-dist directory',
+    args => {
+        %App::DistUtils::dist_arg_single,
+        tarball => {
+            schema => 'bool*',
+            cmdline_aliases => {t=>{}},
+        },
+    },
+};
+sub dist_dir {
+    my %args = @_;
+
+    if ($args{tarball}) {
+        require File::ShareDir::Tarball;
+        [200, "OK", File::ShareDir::Tarball::dist_dir($args{dist})];
+    } else {
+        require File::ShareDir;
+        [200, "OK", File::ShareDir::dist_dir($args{dist})];
+    }
+}
+
+Perinci::CmdLine::Any->new(
+    url => "/main/dist_dir",
+)->run;
+
+# ABSTRACT:
+# PODNAME:
+
+=head1 SYNOPSIS
+
+ % dist-dir IOD-Examples
+ /home/ujang/perl5/perlbrew/perls/perl-5.18.4/lib/site_perl/5.18.4/auto/share/dist/IOD-Examples
+
+
+=head1 DESCRIPTION
+
+=cut

@@ -1,0 +1,87 @@
+#!perl
+
+use 5.010;
+use strict;
+use warnings;
+
+use App::DistUtils;
+#use List::Util qw(first);
+use Perinci::CmdLine::Any;
+use Perinci::Object;
+
+# AUTHORITY
+# DATE
+# DIST
+# VERSION
+
+our %SPEC;
+
+$SPEC{uninstall_dist} = {
+    v => 1.1,
+    summary => 'Uninstall a Perl distribution',
+    args => {
+        %App::DistUtils::dist_arg_multiple,
+        force => {
+            schema => 'bool',
+            cmdline_aliases => {f=>{}},
+        },
+    },
+    deps => {
+        prog => 'cpanm',
+    },
+};
+sub uninstall_dist {
+    require Dist::Util;
+
+    my %args = @_;
+
+    my $res = envresmulti();
+    my $dists = $args{dist};
+
+    for my $dist0 (@$dists) {
+        (my $dist = $dist0) =~ s/-/::/g;
+        my $packlist = Dist::Util::packlist_for($dist);
+        unless ($packlist) {
+            $res->add_result(404, "Can't find .packlist for $dist0",
+                             {item_id=>$dist0});
+            next;
+        }
+
+        # the easy way
+        my $mod = $dist;
+
+        # the proper way
+        #@lines = do { open my($fh), "<", $packlist; map {chomp} <$fh> };
+        ## find the first module for module name to feed to cpanm
+        #my $mod = first { /\.pm\z/ } @lines;
+        ## XXX read package declaration from module file
+
+        system "cpanm", "--uninstall", (('--force') x !!$args{force}), $mod;
+
+        if ($?) {
+            $res->add_result(500, "Uninstall $dist0 failed: $!",
+                             {item_id=>$dist0});
+        } else {
+            $res->add_result(200, "OK",
+                             {item_id=>$dist0});
+        }
+    }
+
+    $res->as_struct;
+}
+
+Perinci::CmdLine::Any->new(
+    url => "/main/uninstall_dist",
+)->run;
+
+# ABSTRACT:
+# PODNAME:
+
+=head1 SYNOPSIS
+
+ % list-dist-contents Text-ANSITable
+
+
+=head1 DESCRIPTION
+
+=cut
